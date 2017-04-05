@@ -24,12 +24,29 @@ apiUrl   = 'http://api.wordnik.com/v4'
 client   = swagger.ApiClient(apiKey, apiUrl)
 wordApi  = WordApi.WordApi(client)
 
+def getUsage(frequency):
+    if   frequency < 10:  return "Rare"
+    elif frequency < 50:  return "Low"
+    elif frequency < 200: return "Medium"
+    elif frequency < 400: return "High"
+    elif frequency < 800: return "Very High"
+    else:                 return "Common"
+
 with open(filename) as f:
     for word in f.read().splitlines():
         definitions = wordApi.getDefinitions(word, limit=1)
 
         if definitions != None:
-            print "%s\t%s" % (word, definitions[0].text.encode('utf-8'))
+
+            definition = definitions[0].text.encode('utf-8')
+            frequency = wordApi.getWordFrequency(word)
+
+            if frequency != None:
+                usage = getUsage(frequency.totalCount)
+            else:
+                usage = "Unknown"
+
+            print "%s\t%s\t%s" % (word, definition, usage)
         else:
             print "No definition found: ", word
 
